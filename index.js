@@ -1,12 +1,12 @@
 import { Agent, run, MCPServerStreamableHttp, withTrace } from '@openai/agents';
-
+import 'dotenv/config'; 
 async function main() {
   const mcpServer = new MCPServerStreamableHttp({
     url: 'https://prod.cashfree.com/mcpsvc/sr-analytics/mcp',
     name: 'Success Rate MCP Server',
   });
   const agent = new Agent({
-    name: 'GitMCP Assistant',
+    name: 'MCP Assistant',
     instructions: 'Use the tools to respond to user requests.',
     mcpServers: [mcpServer],
   });
