@@ -31,28 +31,28 @@ class ChatbotSession {
     }
   }  
   
-  async sendMessage(userMessage) {    
-  try {    
-    // Build conversation as a single string  
-    if (!this.conversationHistory) {  
-      this.conversationHistory = `User: ${userMessage}`;  
-    } else {  
-      this.conversationHistory += `\n\nUser: ${userMessage}`;  
-    }  
-      
-    const result = await withTrace('Chatbot Session', async () => {    
-      return await run(this.agent, this.conversationHistory);    
-    });    
-  
-    // Add assistant response to history  
-    this.conversationHistory += `\n\nAssistant: ${result.finalOutput}`;  
+  async sendMessage(userMessage, conversationHistory) {    
+    try {    
+      // Build conversation as a single string  
+      let conversation;
+      if (!conversationHistory) {  
+        conversation = `User: ${userMessage}`;  
+      } else {  
+        conversation = `${conversationHistory}\n\nUser: ${userMessage}`;  
+      }  
         
-    return result.finalOutput;    
-  } catch (error) {    
-    console.error('Error in chat session:', error);    
-    throw error;    
-  }    
-}
+      const result = await withTrace('Chatbot Session', async () => {    
+        return await run(this.agent, conversation);    
+      });    
+  
+      // Return both the assistant response and the updated conversation
+      const updatedHistory = `${conversation}\n\nAssistant: ${result.finalOutput}`;
+      return { finalOutput: result.finalOutput, updatedHistory };
+    } catch (error) {    
+      console.error('Error in chat session:', error);    
+      throw error;    
+    }    
+  }
   
   resetChat() {
     this.conversationHistory = null;

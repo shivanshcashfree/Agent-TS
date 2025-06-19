@@ -42,7 +42,7 @@ app.post('/api/chat/new', async (req, res) => {
 // Send a message using the existing session
 app.post('/api/chat/message', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, conversationHistory } = req.body;
     
     if (!message) {
       return res.status(400).json({
@@ -58,11 +58,12 @@ app.post('/api/chat/message', async (req, res) => {
       });
     }
     
-    const response = await globalSession.sendMessage(message);
+    const result = await globalSession.sendMessage(message, conversationHistory);
     
     res.json({
       success: true,
-      response
+      response: result.finalOutput,
+      updatedHistory: result.updatedHistory
     });
   } catch (error) {
     console.error('Error sending message:', error);
