@@ -1,5 +1,6 @@
 import { Agent, run, MCPServerStreamableHttp, withTrace } from '@openai/agents';  
 import { agentInstructions } from './instructions/agentInstructions.js';  
+import { getBackOffTool } from './tools/backoff.js'; 
 import 'dotenv/config';  
 
 class ChatbotSession {  
@@ -7,22 +8,25 @@ class ChatbotSession {
     this.agent = null;
     this.mcpServer = null;
     this.conversationHistory = null; 
-    
-    this.mcpServer = new MCPServerStreamableHttp({  
-      url: 'https://prod.cashfree.com/mcpsvc/sr-analytics/mcp',  
-      name: 'Success Rate MCP Server',  
-    });  
-      
-    this.agent = new Agent({  
-      name: 'MCP Assistant',  
-      instructions: agentInstructions,  
-      model: 'gpt-4o', 
-      mcpServers: [this.mcpServer],  
-    });  
   }  
   
   async initialize() {  
     try {
+      this.mcpServer = new MCPServerStreamableHttp({  
+        url: 'https://prod.cashfree.com/mcpsvc/sr-analytics/mcp',  
+        name: 'Success Rate MCP Server',  
+      });
+
+      const backOffTool = await getBackOffTool();
+
+      this.agent = new Agent({
+        name: 'MCP Assistant',
+        instructions: agentInstructions,
+        model: 'gpt-4o',
+        mcpServers: [this.mcpServer],
+        tools: [backOffTool],
+      });
+
       await this.mcpServer.connect();  
       console.log('MCP Server connected successfully');
     } catch (error) {
